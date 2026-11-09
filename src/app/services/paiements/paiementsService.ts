@@ -28,3 +28,14 @@ function mapPaiement(backendPayement: any): any {
     passager: backendPayement.user ? `${backendPayement.user.prenom} ${backendPayement.user.nom}` : "Passager inconnu",
   };
 }
+
+export async function listPaiements(): Promise<any[]> {
+  const response = await laravelClient.get("/v1/payements");
+  const items = Array.isArray(response.data) ? response.data : (response.data.data || []);
+  return items.map(mapPaiement);
+}
+
+export async function getPaiementsRecommence(): Promise<any[]> {
+  const list = await listPaiements();
+  return list.filter((p) => p.statut === "ACCEPTE");
+}

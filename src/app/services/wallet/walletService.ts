@@ -15,3 +15,39 @@ export async function getWalletInfo(): Promise<WalletInfo> {
   };
 }
 
+function mapWalletMovement(backendPayement: any): any {
+  const isCredit = backendPayement.type_transaction === "RECHARGE_PORTEFEUILLE" || backendPayement.type_transaction === "recharge";
+  
+  return {
+    id: backendPayement.id,
+    ref: backendPayement.reference,
+    type: isCredit ? "credit" : "debit",
+    montant: `${isCredit ? "+" : "-"}${Number(backendPayement.montant).toLocaleString("fr-FR")} FCFA`,
+    mode: backendPayement.mode?.value || backendPayement.mode || "Wave",
+    date: backendPayement.created_at ? new Date(backendPayement.created_at).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }) : "—",
+    statut: backendPayement.statut === "ACCEPTE" ? "Validé" : "En cours",
+    libelle: isCredit ? "Rechargement Portefeuille" : "Achat Billet",
+    passager: backendPayement.user ? `${backendPayement.user.prenom} ${backendPayement.user.nom}` : "Passager",
+  };
+}
+
+export async function listWalletMovements(): Promise<any[]> {
+  const response = await laravelClient.get("/v1/payements");
+  const items = Array.isArray(response.data) ? response.data : (response.data.data || []);
+  return items.map(mapWalletMovement);
+}
+
+export async function listWalletRechargements(): Promise<any[]> {
+  const list = await listWalletMovements();
+  return list.filter((m) => m.type === "credit");
+}
+
+export async function listWalletDebits(): Promise<any[]> {
+  const list = await listWalletMovements();
+  return list.filter((m) => m.type === "debit");
+}

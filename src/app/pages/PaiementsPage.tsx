@@ -46,5 +46,77 @@ export default function PaiementsPage({ sub }: { sub: string }) {
       )}
     </div>
   );
-  return <div className='p-6'>{feedback}</div>;
+
+  if (sub !== "transactions") {
+    const labels: Record<string, string> = { wave: "Wave Mobile Money", orange: "Orange Money", yas: "Yas by BICIS", carte: "Carte bancaire" };
+    const subToMode: Record<string, string> = { wave: "WAVE", orange: "ORANGE_MONEY", yas: "YAS", carte: "CARTE_BANCAIRE" };
+    const mode = subToMode[sub] ?? sub.toUpperCase();
+    const filtered = transactions.filter((t: any) => t.mode === mode);
+    const volume = filtered.reduce((a: number, t: any) => a + (t.montantValue || 0), 0);
+    const nbSucces = filtered.filter((t: any) => t.statut === "Validé").length;
+    const tauxSucces = filtered.length ? `${Math.round((nbSucces / filtered.length) * 100)}%` : "—";
+    const enAttente = filtered.filter((t: any) => t.statut === "En cours").length;
+
+    return (
+      <div className="p-6">
+        <PageHeader title={labels[sub] ?? sub} subtitle="Transactions réelles sur ce moyen de paiement" />
+      <Loader isLoading={isLoading} isError={isError} />
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          {[ ["Transactions", filtered.length, C.ocean], ["Volume", `${volume.toLocaleString("fr-FR")} FCFA`, C.teal], ["Taux de succès", tauxSucces, C.green], ["En attente", enAttente, C.amber] ].map(([l, v, c]) => (
+            <Card key={l as string} className="text-center py-4">
+              <div className="text-xl font-bold font-mono mb-1" style={{ color: c as string }}>{v as string}</div>
+              <div className="text-xs text-slate-500 mt-0.5">{l as string}</div>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <Table
+            cols={["ID Transaction", "Passager", "Montant", "Date", "Statut"]}
+            rows={filtered.map((t: any) => [
+              <span className="font-mono text-xs font-semibold" style={{ color: C.ocean }} key={`id-${t.id}`}>{t.id.slice(0, 13)}...</span>,
+              <span className="font-semibold text-slate-800" key={`pass-${t.id}`}>{t.passager}</span>,
+              <span className="font-mono font-semibold text-slate-900 dark:text-slate-100" key={`mont-${t.id}`}>{t.montant}</span>,
+              <span key={`date-${t.id}`} className="text-xs text-slate-500 dark:text-slate-400">{t.date}</span>,
+              <StatusBadge key={`stat-${t.id}`} statut={t.statut} />,
+            ])}
+          />
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <Loader isLoading={isLoading} isError={isError} />
+      <PageHeader title="Transactions" subtitle="Toutes les transactions de paiement"
+        actions={<><Btn label="Exporter" icon={Download} variant="secondary" /><Btn label="Filtrer" icon={Filter} variant="secondary" /></>} />
+      
+      <div className="grid grid-cols-5 gap-3 mb-6">
+        {paiementData.map(p => (
+          <Card key={p.name} className="text-center py-3">
+            <div className="text-sm font-bold font-mono mb-0.5" style={{ color: p.color }}>{p.value}%</div>
+            <div className="text-[10px] text-slate-500">{p.name}</div>
+          </Card>
+        ))}
+      </div>
+      
+      <Card>
+        <div className="flex gap-2 mb-4">
+          <SearchBar placeholder="Rechercher par passager, ID..." />
+        </div>
+        <Table
+          cols={["Passager", "Montant", "Méthode", "Date", "Statut", ""]}
+          rows={transactions.map(t => [
+            // <span className="font-mono text-xs font-semibold" style={{ color: C.ocean }} key={`id-${t.id}`}>{t.id.slice(0, 13)}...</span>,
+            <span className="font-semibold text-slate-800" key={`pass-${t.id}`}>{t.passager}</span>,
+            <span className="font-mono font-semibold text-slate-900 dark:text-slate-100" key={`mont-${t.id}`}>{t.montant}</span>,
+            <span key={`meth-${t.id}`}>{MODE_META[t.mode]?.label ?? t.methode}</span>,
+            <span key={`date-${t.id}`} className="text-xs text-slate-500 dark:text-slate-400">{t.date}</span>,
+            <StatusBadge key={`stat-${t.id}`} statut={t.statut} />,
+            <button key={`act-${t.id}`} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-blue-600 transition-colors"><Eye size={14} /></button>,
+          ])}
+        />
+      </Card>
+    </div>
+  );
 }

@@ -181,5 +181,77 @@ function ResidentsListePage() {
 }
 
 export default function ResidentsPage({ sub }: { sub: string }) {
-  return <ResidentsListePage />;
+  const { data: enAttente = [], isLoading: waitL, isError: waitE } = useDemandesEnAttente();
+  const { data: refusees = [], isLoading: refL, isError: refE } = useDemandesRefusees();
+  const { data: historique = [], isLoading: histL, isError: histE } = useDemandesHistorique();
+
+  const isLoading = waitL || refL || histL;
+  const isError = waitE || refE || histE;
+
+  const feedback = (
+    <div className="space-y-2 mb-4">
+      {isLoading && (
+        <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+          <div className="h-full w-1/3 animate-pulse rounded-full bg-slate-400" />
+        </div>
+      )}
+    </div>
+  );
+
+  if (sub === "liste") return <ResidentsListePage />;
+
+  if (sub === "refusees") {
+    return (
+      <div className="p-6">
+        <PageHeader title="Demandes refusées" subtitle="Historique des dossiers rejetés" />
+        <Loader isLoading={isLoading} isError={isError} />
+        <Card>
+          <Table
+            cols={["ID", "Nom", "Date", "Motif de refus", "Décision par"]}
+            rows={refusees.map(r => [
+              <span className="font-mono text-xs text-slate-400" key={`id-${r.id}`}>{r.id.slice(0, 8)}...</span>,
+              <span className="font-semibold text-slate-800 dark:text-slate-100" key={`nom-${r.id}`}>{r.nom}</span>,
+              <span key={`date-${r.id}`}>{r.date}</span>,
+              <span key={`motif-${r.id}`} className="text-red-600 font-medium text-xs bg-red-50 dark:bg-red-950/20 px-2 py-1 rounded">{r.motif_refus || "Documents non conformes"}</span>,
+              <span key={`by-${r.id}`}>Administrateur</span>,
+            ])}
+          />
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <PageHeader title="Historique des demandes" subtitle="Tous les dossiers traités"
+        actions={<Btn label="Exporter" icon={Download} variant="secondary" />} />
+      <Loader isLoading={isLoading} isError={isError} />
+      <div className="grid grid-cols-4 gap-3 mb-6">
+        {[
+          ["Total demandes", historique.length, C.ocean],
+          ["Validées", historique.filter(h => h.statut === "Validé").length, C.green],
+          ["Refusées", historique.filter(h => h.statut === "Refusé").length, C.red],
+          ["En attente", enAttente.length, C.amber],
+        ].map(([l, v, c]) => (
+          <Card key={l as string} className="text-center py-3">
+            <div className="text-xl font-bold font-mono animate-pulse" style={{ color: c as string }}>{v as string}</div>
+            <div className="text-xs text-slate-500 mt-0.5">{l as string}</div>
+          </Card>
+        ))}
+      </div>
+      <Card>
+        <Table
+          cols={["ID", "Nom", "Date", "Adresse", "Statut", "Traité par"]}
+          rows={historique.map(d => [
+            <span className="font-mono text-xs text-slate-500" key={`id-${d.id}`}>{d.id.slice(0, 8)}...</span>,
+            <span className="font-semibold text-slate-800" key={`nom-${d.id}`}>{d.nom}</span>,
+            <span key={`date-${d.id}`}>{d.date}</span>,
+            <span key={`adr-${d.id}`}>{d.adresse}</span>,
+            <StatusBadge key={`statut-${d.id}`} statut={d.statut} />,
+            <span key={`by-${d.id}`}>Administrateur</span>,
+          ])}
+        />
+      </Card>
+    </div>
+  );
 }

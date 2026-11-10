@@ -42,3 +42,12 @@ export interface BroadcastPayload {
   destinataires: string;
 }
 
+export async function broadcastNotification(payload: BroadcastPayload): Promise<any> {
+  const response = await laravelClient.post("/v1/notifications/broadcast", {
+    titre: payload.titre,
+    message: payload.message,
+    canaux: [CANAL_UI_TO_BACKEND[payload.canal] ?? payload.canal],
+    destinataires: payload.destinataires,
+  });
+  return response.data;
+}

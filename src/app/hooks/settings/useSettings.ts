@@ -25,3 +25,36 @@ export function useUpdateSettings() {
   });
 }
 
+export function useActivityLogs() {
+  return useQuery({
+    queryKey: ["activity-logs"],
+    queryFn: listActivityLogs,
+  });
+}
+
+export function useTokens() {
+  return useQuery({
+    queryKey: ["tokens"],
+    queryFn: listTokens,
+  });
+}
+
+export function useCreateToken() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createToken,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tokens"] });
+    },
+  });
+}
+
+export function useDeleteToken() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteToken,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tokens"] });
+    },
+  });
+}

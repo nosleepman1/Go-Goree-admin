@@ -29,5 +29,39 @@ export default function NotifsPage({ sub }: { sub: string }) {
     </div>
   );
 
+  const handleBroadcast = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!titre.trim()) {
+      toast.error("Veuillez saisir un titre.");
+      return;
+    }
+    if (!message.trim()) {
+      toast.error("Veuillez saisir un message.");
+      return;
+    }
+
+    try {
+      const res = await broadcastMutation.mutateAsync({
+        titre: titre.trim(),
+        message: message.trim(),
+        canal,
+        destinataires,
+      });
+      const nb = res?.destinataires_contactes;
+      toast.success(
+        typeof nb === "number"
+          ? `Notification diffusée à ${nb} destinataire${nb > 1 ? "s" : ""}.`
+          : "Campagne de notification diffusée avec succès !"
+      );
+      setMessage("");
+      setTitre("");
+    } catch (err) {
+      toast.error("Impossible de diffuser la notification.");
+    }
+  };
+
+  const handleUseTemplate = (title: string, msg: string) => {
+    setTitre(title);
+    setMessage(msg);
   return <div className='p-6'>{feedback}</div>;
 }

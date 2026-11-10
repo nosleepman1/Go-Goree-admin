@@ -54,6 +54,48 @@ export default function DashboardPage() {
           </div>
         </div>
       ) : (
+        <>
+
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Bonjour, Administrateur</h1>
+          <p className="text-sm text-slate-500 mt-0.5">Dakar ↔ Île de Gorée</p>
+        </div>
+        <div className="flex gap-2">
+          <Btn label="Actualiser" icon={RefreshCw} variant="secondary" onClick={() => window.location.reload()} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPICard
+          title="Billets vendus"
+          value={Number(overview.billets_vendus_aujourdhui ?? 0).toLocaleString("fr-FR")}
+          sub="aujourd'hui"
+          icon={Ticket}
+          color={C.ocean}
+        />
+        <KPICard
+          title="Recettes du jour"
+          value={`${Number(overview.recettes_aujourdhui ?? 0).toLocaleString("fr-FR")} FCFA`}
+          sub="en cours"
+          icon={Banknote}
+          color={C.teal}
+        />
+        <KPICard
+          title="Voyages effectués"
+          value={`${Number(overview.voyages_effectues_aujourdhui ?? 0)} / ${Number(overview.voyages_total_aujourdhui ?? 0)}`}
+          sub="ce jour"
+          icon={Ship}
+          color={C.green}
+        />
+        <KPICard
+          title="Passagers embarqués"
+          value={Number(overview.passagers_embarques_aujourdhui ?? 0).toLocaleString("fr-FR")}
+          sub="aujourd'hui"
+          icon={Users}
+          color={C.amber}
+      </div>
+        </>
       )}
     </div>
   );

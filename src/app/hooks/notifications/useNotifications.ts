@@ -10,3 +10,12 @@ export function useNotifications() {
   });
 }
 
+export function useBroadcastNotification() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: BroadcastPayload) => broadcastNotification(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+}

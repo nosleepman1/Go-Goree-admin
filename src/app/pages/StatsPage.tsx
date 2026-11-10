@@ -234,8 +234,88 @@ export default function StatsPage({ sub }: { sub: string }) {
                 <div key={agent.id}>
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-semibold text-slate-700">{agent.nom}</span>
+                    <span className="font-mono text-slate-600">
+                      {agent.taux}% · {agent.scannes} scans
+                    </span>
+                  </div>
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${agent.taux}%`, background: `linear-gradient(90deg, ${C.ocean}, ${C.teal})` }}
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
       </div>
     );
   }
-  return <div className='p-6'>{feedback}</div>;
+
+  // Dernier mois renvoyé par l'API (série chronologique) — plus de mois codé en dur.
+  const currentMonthData: any = monthlyData.length ? monthlyData[monthlyData.length - 1] : null;
+  const billetsCeMois = currentMonthData?.billets != null ? currentMonthData.billets.toLocaleString("fr-FR") : ND;
+  const recettesCeMois = currentMonthData?.recettes == null
+    ? ND
+    : currentMonthData.recettes >= 1000000
+      ? `${(currentMonthData.recettes / 1000000).toFixed(1)}M FCFA`
+      : `${currentMonthData.recettes.toLocaleString("fr-FR")} FCFA`;
+  const occupationMoyenne = currentMonthData?.occupation != null ? `${currentMonthData.occupation}%` : ND;
+
+  return (
+    <div className="p-6">
+      {feedback}
+      <PageHeader title="Statistiques — Vue d'ensemble" subtitle="Tableau analytique mensuel 2026"
+        actions={<Btn label="Exporter rapport" icon={Download} variant="secondary" />} />
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <Card className="text-center py-4">
+          <div className="text-xl font-bold font-mono" style={{ color: C.ocean }}>{billetsCeMois}</div>
+          <div className="text-xs text-slate-500 mt-0.5">Billets ce mois</div>
+        </Card>
+        <Card className="text-center py-4">
+          <div className="text-xl font-bold font-mono" style={{ color: C.teal }}>{recettesCeMois}</div>
+          <div className="text-xs text-slate-500 mt-0.5">Recettes (mois)</div>
+        </Card>
+        <Card className="text-center py-4">
+          <div className="text-xl font-bold font-mono" style={{ color: C.green }}>{occupationMoyenne}</div>
+          <div className="text-xs text-slate-500 mt-0.5">Taux occupation</div>
+        </Card>
+        {/* Aucune source de satisfaction côté API — valeur non disponible. */}
+        <Card className="text-center py-4">
+          <div className="text-xl font-bold font-mono" style={{ color: C.amber }}>{ND}</div>
+          <div className="text-xs text-slate-500 mt-0.5">Satisfaction</div>
+        </Card>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <ChartCard title="Billets vendus par mois — 2026">
+          {monthlyData.length === 0 ? <EmptyState className="h-[200px]" /> : (
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={monthlyData}>
+              <CartesianGrid key="cg" strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <XAxis key="x" dataKey="month" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <YAxis key="y" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <Tooltip key="tt" contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+              <Legend key="lg" verticalAlign="bottom" wrapperStyle={{ fontSize: 11 }} />
+              <Bar key="bar" dataKey="billets" fill={C.ocean} radius={[3, 3, 0, 0]} name="Billets" />
+            </BarChart>
+          </ResponsiveContainer>
+          )}
+        </ChartCard>
+        <ChartCard title="Répartition passagers — Ce mois">
+          {pieData.length === 0 ? <EmptyState className="h-[200px]" /> : (
+          <ResponsiveContainer width="100%" height={200}>
+            <RPieChart>
+              <Pie key="pie" data={pieData} cx="50%" cy="50%" innerRadius={48} outerRadius={78} paddingAngle={3} dataKey="value">
+                {pieData.map(e => <Cell key={`cell-${e.name}`} fill={e.color} />)}
+              </Pie>
+              <Tooltip key="tt" formatter={(v) => `${v}%`} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+              <Legend key="lg" verticalAlign="bottom" wrapperStyle={{ fontSize: 11 }} />
+            </RPieChart>
+          </ResponsiveContainer>
+          )}
+        </ChartCard>
+      </div>
+    </div>
+  );
 }

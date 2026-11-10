@@ -28,5 +28,74 @@ export default function StatsPage({ sub }: { sub: string }) {
   const feedback = <Loader isLoading={isLoading} isError={isError} />;
 
   if (sub === "billets" || sub === "recettes") {
+    return (
+      <div className="p-6">
+        <PageHeader title={sub === "billets" ? "Statistiques billets" : "Statistiques recettes"} subtitle="Analyse par mois — 2026"
+          actions={<Btn label="Exporter" icon={Download} variant="secondary" />} />
+        {feedback}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          {(sub === "billets"
+            ? [
+                ["Total billets (ytd)", metrics?.overview?.total_tickets_ytd?.toLocaleString("fr-FR") ?? ND, C.ocean],
+                ["Mois record", metrics?.overview?.record_month ? metrics.overview.record_month.split(":")[0] : ND, C.teal],
+                ["Moyenne/mois", metrics?.overview?.average_tickets_per_month != null ? Math.round(metrics.overview.average_tickets_per_month).toLocaleString("fr-FR") : ND, C.green],
+                ["Tendance", metrics?.overview?.tendance_percentage ?? ND, C.amber]
+              ]
+            : [
+                ["Recettes totales (ytd)", metrics?.overview?.total_sales_ytd != null ? `${(metrics.overview.total_sales_ytd / 1000000).toFixed(1)}M FCFA` : ND, C.ocean],
+                ["Mois record", metrics?.overview?.record_month ? metrics.overview.record_month.split("FCFA")[0] : ND, C.teal],
+                ["Moyenne/mois", metrics?.overview?.average_sales_per_month != null ? `${(metrics.overview.average_sales_per_month / 1000000).toFixed(1)}M FCFA` : ND, C.green],
+                ["Croissance", metrics?.overview?.tendance_percentage ?? ND, C.green]
+              ]
+          ).map(([l, v, c]) => (
+            <Card key={l as string} className="text-center py-4">
+              <div className="text-xl font-bold font-mono" style={{ color: c as string }}>{v as string}</div>
+              <div className="text-xs text-slate-500 mt-1">{l as string}</div>
+            </Card>
+          ))}
+        </div>
+        <ChartCard title={sub === "billets" ? "Billets vendus par mois — 2026" : "Recettes mensuelles (FCFA) — 2026"}>
+          {monthlyData.length === 0 ? <EmptyState className="h-[250px]" /> : (
+          <ResponsiveContainer width="100%" height={250}>
+            <AreaChart data={monthlyData}>
+              <defs>
+                <linearGradient id="gradStats" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={sub === "billets" ? C.ocean : C.teal} stopOpacity={0.2} />
+                  <stop offset="95%" stopColor={sub === "billets" ? C.ocean : C.teal} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid key="cg" strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis key="x" dataKey="month" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <YAxis key="y" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <Tooltip key="tt" contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+              <Area key="area" type="monotone" dataKey={sub === "billets" ? "billets" : "recettes"}
+                stroke={sub === "billets" ? C.ocean : C.teal} fill="url(#gradStats)" strokeWidth={2.5}
+                name={sub === "billets" ? "Billets" : "Recettes (FCFA)"} />
+            </AreaChart>
+          </ResponsiveContainer>
+          )}
+        </ChartCard>
+      </div>
+    );
+  }
+
+  if (sub === "categories" || sub === "paiements") {
+    const data = sub === "categories" ? pieData : paiementData;
+    return (
+      <div className="p-6">
+        {feedback}
+        <PageHeader title={sub === "categories" ? "Catégories de voyageurs" : "Répartition des paiements"} subtitle="Par mois — cumulé 2026" />
+        <div className="grid grid-cols-2 gap-6">
+          <ChartCard title={sub === "categories" ? "Répartition par type" : "Modes de paiement"} subtitle="Ce mois">
+            {data.length === 0 ? <EmptyState className="h-[280px]" /> : (
+            <ResponsiveContainer width="100%" height={280}>
+              <RPieChart>
+                <Pie key="pie" data={data} cx="50%" cy="50%" outerRadius={110} paddingAngle={3} dataKey="value" label={({ name, value }) => `${name}: ${value}%`} labelLine>
+                  {data.map((e, i) => <Cell key={`cell-${e.name}-${i}`} fill={e.color} />)}
+                </Pie>
+                <Tooltip key="tt" formatter={(v) => `${v}%`} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+      </div>
+    );
+  }
   return <div className='p-6'>{feedback}</div>;
 }

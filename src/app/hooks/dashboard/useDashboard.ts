@@ -44,5 +44,21 @@ export function useDashboard() {
     transactionsQ.isLoading ||
     analyticsQ.isLoading;
 
-  return { ticketData: [], monthlyData: [], pieData: [], voyages: [], transactions: [], isLoading, isError };
+  const isError =
+    voyagesQ.isError ||
+    transactionsQ.isError ||
+    analyticsQ.isError;
+
+  const metrics = analyticsQ.data || {};
+
+  const data: DashboardData = {
+    ticketData: metrics.weekly_distribution ?? [],
+    monthlyData: metrics.monthly_data ?? [],
+    pieData: metrics.visitor_categories ?? [],
+    voyages: voyagesQ.data ?? [],
+    transactions: (transactionsQ.data ?? []).slice(0, 10), // only recent transactions on dashboard
+    overview: metrics.overview || {},
+  };
+
+  return { ...data, isLoading, isError };
 }

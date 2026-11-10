@@ -94,6 +94,76 @@ export default function StatsPage({ sub }: { sub: string }) {
                   {data.map((e, i) => <Cell key={`cell-${e.name}-${i}`} fill={e.color} />)}
                 </Pie>
                 <Tooltip key="tt" formatter={(v) => `${v}%`} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+              </RPieChart>
+            </ResponsiveContainer>
+            )}
+          </ChartCard>
+          <Card>
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Détail par catégorie</h3>
+            <div className="space-y-3">
+              {data.length === 0 && <EmptyState />}
+              {data.map((d, i) => (
+                <div key={i}>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-semibold text-slate-700">{d.name}</span>
+                    <span className="font-mono text-slate-600">{d.value}%</span>
+                  </div>
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${d.value}%`, background: d.color }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (sub === "heures") {
+    // KPI dérivés de la distribution horaire réelle — plus aucune valeur en dur.
+    const creneaux = hourlyData as { heure: string; passagers: number }[];
+    const plusCharge = creneaux.reduce<typeof creneaux[number] | null>((max, c) => (!max || c.passagers > max.passagers ? c : max), null);
+    const plusCreux = creneaux.reduce<typeof creneaux[number] | null>((min, c) => (!min || c.passagers < min.passagers ? c : min), null);
+    const chargeMoyenne = creneaux.length
+      ? Math.round(creneaux.reduce((somme, c) => somme + c.passagers, 0) / creneaux.length)
+      : null;
+
+    return (
+      <div className="p-6">
+        {feedback}
+        <PageHeader title="Heures de pointe" subtitle="Distribution horaire mensuelle — moyenne par créneaux" />
+        <ChartCard title="Passagers par créneau horaire" subtitle="Moyenne mensuelle 2026">
+          {creneaux.length === 0 ? <EmptyState className="h-[280px]" /> : (
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={hourlyData}>
+              <CartesianGrid key="cg" strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <XAxis key="x" dataKey="heure" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <YAxis key="y" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <Tooltip key="tt" contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+              <Bar key="bar" dataKey="passagers" name="Passagers" radius={[4, 4, 0, 0]}>
+                {hourlyData.map(entry => (
+                  <Cell key={`h-${entry.heure}`} fill={entry.passagers > 140 ? C.ocean : entry.passagers > 100 ? C.teal : "#cbd5e1"} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          )}
+        </ChartCard>
+        <div className="grid grid-cols-3 gap-4 mt-4">
+          {[
+            ["Heure la plus chargée", plusCharge ? `${plusCharge.heure} (${plusCharge.passagers} pass.)` : ND, C.ocean],
+            ["Heure creuse", plusCreux ? `${plusCreux.heure} (${plusCreux.passagers} pass.)` : ND, C.green],
+            ["Charge moyenne", chargeMoyenne != null ? `${chargeMoyenne} pass./créneau` : ND, C.teal],
+          ].map(([l, v, c]) => (
+            <Card key={l as string} className="text-center py-4">
+              <div className="text-sm font-bold font-mono" style={{ color: c as string }}>{v as string}</div>
+              <div className="text-xs text-slate-500 mt-1">{l as string}</div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
       </div>
     );
   }

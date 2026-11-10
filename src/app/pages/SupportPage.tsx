@@ -32,5 +32,29 @@ export default function SupportPage({ sub }: { sub: string }) {
     );
   }
 
-  return <div className='p-6'>Support</div>;
+  return (
+    <div className="p-6">
+      <PageHeader title="Tickets Support" subtitle="Demandes d'assistance en cours"
+        actions={<Btn label="Nouveau ticket" icon={Plus} variant="primary" />} />
+      <div className="grid grid-cols-4 gap-3 mb-6">
+        {[ ["Ouverts", "5", C.amber], ["En cours", "3", C.ocean], ["Résolus (mois)", "28", C.green], ["Temps moyen", "2h14", C.teal] ].map(([l, v, c]) => (
+          <Card key={l as string} className="text-center py-3">
+            <div className="text-2xl font-bold font-mono" style={{ color: c as string }}>{v as string}</div>
+            <div className="text-xs text-slate-500 mt-0.5">{l as string}</div>
+          </Card>
+        ))}
+      </div>
+      <Card>
+        <Table
+          cols={["ID", "Sujet", "Soumis par", "Priorité", "Statut", ""]}
+          rows={[
+            ["TK-0891", "Paiement Wave non crédité", "Fatou Diallo", <Badge label="Haute" color="red" />, <StatusBadge statut="En cours" />, <Btn label="Voir" icon={Eye} variant="ghost" />],
+            ["TK-0892", "Billet non scannable à l'embarquement", "Marc Dupont", <Badge label="Normale" color="amber" />, <StatusBadge statut="En attente" />, <Btn label="Voir" icon={Eye} variant="ghost" />],
+            ["TK-0893", "Demande résidente non traitée", "Cheikh Mbaye", <Badge label="Normale" color="amber" />, <StatusBadge statut="En attente" />, <Btn label="Voir" icon={Eye} variant="ghost" />],
+            ["TK-0894", "Problème connexion application", "Aminata Ndiaye", <Badge label="Faible" color="gray" />, <StatusBadge statut="En attente" />, <Btn label="Voir" icon={Eye} variant="ghost" />],
+          ]}
+        />
+      </Card>
+    </div>
+  );
 }

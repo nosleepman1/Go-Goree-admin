@@ -133,5 +133,45 @@ export default function NotifsPage({ sub }: { sub: string }) {
                 <button key={i} onClick={() => handleUseTemplate(t.titre, t.msg)}
                   className="w-full flex items-start gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-200 hover:bg-blue-50/40 transition-all text-left">
                   <BellRing size={16} className="mt-0.5 shrink-0" style={{ color: C.ocean }} />
+                  <div>
+                    <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">{t.titre}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{t.desc}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  const canalColor = (c: string) => (c === "SMS" ? "blue" : c === "MAIL" ? "teal" : c === "IN_APP" ? "purple" : "gray");
+  const canalLabel = (c: string) => (c === "MAIL" ? "Email" : c === "IN_APP" ? "In-App" : c);
+
+  if (sub === "historique") {
+    return (
+      <div className="p-6">
+        <Loader isLoading={isLoading} isError={isError} />
+        <PageHeader title="Historique des notifications" subtitle="Notifications enregistrées (in-app & alertes)" />
+        <Card>
+          <Table
+            cols={["Date", "Canal", "Type", "Statut"]}
+            rows={notifications.map(n => [
+              <span key={`date-${n.id}`}>{n.date}</span>,
+              <Badge key={`canal-${n.id}`} label={canalLabel(n.canal)} color={canalColor(n.canal)} />,
+              <Badge key={`type-${n.id}`} label={n.type} color={n.type === "ALERTE" ? "red" : "indigo"} />,
+              <Badge key={`stat-${n.id}`} label={n.lu ? "Lu" : "Non lu"} color={n.lu ? "green" : "amber"} />,
+            ])}
+          />
+        </Card>
+      </div>
+    );
+  }
+
+  // Filtre par canal : la clé de route (inapp/email/sms/push) → valeur backend (CanalEnum)
+  const SUB_TO_CANAL: Record<string, string> = { sms: "SMS", email: "MAIL", push: "PUSH", inapp: "IN_APP" };
+  const labels: Record<string, string> = { sms: "SMS", email: "Email", push: "Notifications Push", inapp: "In-App" };
+  const canalFilter = SUB_TO_CANAL[sub] ?? sub.toUpperCase();
   return <div className='p-6'>{feedback}</div>;
 }

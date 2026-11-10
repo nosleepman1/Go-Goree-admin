@@ -173,5 +173,34 @@ export default function NotifsPage({ sub }: { sub: string }) {
   const SUB_TO_CANAL: Record<string, string> = { sms: "SMS", email: "MAIL", push: "PUSH", inapp: "IN_APP" };
   const labels: Record<string, string> = { sms: "SMS", email: "Email", push: "Notifications Push", inapp: "In-App" };
   const canalFilter = SUB_TO_CANAL[sub] ?? sub.toUpperCase();
-  return <div className='p-6'>{feedback}</div>;
+  const canalItems = notifications.filter(n => n.canal === canalFilter);
+
+  return (
+    <div className="p-6">
+      <Loader isLoading={isLoading} isError={isError} />
+      <PageHeader title={`Canal — ${labels[sub] ?? sub}`} subtitle="Notifications enregistrées sur ce canal" />
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {[
+          ["Enregistrées", canalItems.length, C.ocean],
+          ["Lues", canalItems.filter(n => n.lu).length, C.green],
+          ["Non lues", canalItems.filter(n => !n.lu).length, C.red],
+        ].map(([l, v, c]) => (
+          <Card key={l as string} className="text-center py-4">
+            <div className="text-xl font-bold font-mono" style={{ color: c as string }}>{v as string}</div>
+            <div className="text-xs text-slate-500 mt-1">{l as string}</div>
+          </Card>
+        ))}
+      </div>
+      <Card>
+        <Table
+          cols={["Date", "Type", "Statut"]}
+          rows={canalItems.map(n => [
+            <span key={`date-${n.id}`}>{n.date}</span>,
+            <Badge key={`type-${n.id}`} label={n.type} color={n.type === "ALERTE" ? "red" : "indigo"} />,
+            <Badge key={`stat-${n.id}`} label={n.lu ? "Lu" : "Non lu"} color={n.lu ? "green" : "amber"} />,
+          ])}
+        />
+      </Card>
+    </div>
+  );
 }

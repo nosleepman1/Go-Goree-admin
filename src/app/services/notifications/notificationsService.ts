@@ -18,3 +18,9 @@ function mapNotification(backendItem: any): NotificationItem {
   };
 }
 
+export async function listNotifications(): Promise<NotificationItem[]> {
+  const response = await laravelClient.get("/v1/notifications");
+  const items = Array.isArray(response.data) ? response.data : (response.data.data || []);
+  return items.map(mapNotification);
+}
+

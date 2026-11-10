@@ -63,5 +63,75 @@ export default function NotifsPage({ sub }: { sub: string }) {
   const handleUseTemplate = (title: string, msg: string) => {
     setTitre(title);
     setMessage(msg);
+    toast.success("Modèle de notification appliqué.");
+  };
+
+  if (sub === "envoyer") {
+    return (
+      <div className="p-6">
+        <PageHeader title="Envoyer une notification" subtitle="Communiquer avec les passagers" />
+      <Loader isLoading={isLoading} isError={isError} />
+        <div className="grid grid-cols-2 gap-6">
+          <Card>
+            <form onSubmit={handleBroadcast}>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Composer le message</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Canal de diffusion principal</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {[
+                      { label: "In-App / Temps réel", key: "IN_APP", icon: MessageSquare },
+                      { label: "Email", key: "EMAIL", icon: Mail },
+                      { label: "SMS", key: "SMS", icon: Smartphone },
+                      { label: "Push", key: "PUSH", icon: Bell },
+                    ].map(item => (
+                      <button type="button" key={item.key} onClick={() => setCanal(item.key)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-medium transition-all ${
+                          canal === item.key 
+                            ? "border-blue-600 bg-blue-50 text-blue-700" 
+                            : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800"
+                        }`}>
+                        <item.icon size={13} />
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Titre</label>
+                  <input className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none bg-white dark:bg-slate-800"
+                    placeholder="Ex: Alerte embarquement" value={titre} onChange={e => setTitre(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Message</label>
+                  <textarea className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none resize-none bg-white dark:bg-slate-800"
+                    rows={5} placeholder="Rédigez votre message ici..." value={message} onChange={e => setMessage(e.target.value)} required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Destinataires</label>
+                  <select className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+                    value={destinataires} onChange={e => setDestinataires(e.target.value)}>
+                    {["Tous les passagers", "Résidents uniquement", "Touristes uniquement", "Scolaires uniquement"].map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </div>
+                <Btn type="submit" label="Diffuser la notification" icon={Send} variant="primary" loading={broadcastMutation.isPending} />
+              </div>
+            </form>
+          </Card>
+          
+          <Card>
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Modèles prédéfinis</h3>
+            <div className="space-y-2">
+              {[
+                { titre: "Voyage annulé", desc: "Notification d'annulation avec information de remboursement", msg: "Alerte : Le voyage de 17h00 est annulé en raison des conditions météorologiques. Remboursement automatique sur votre portefeuille." },
+                { titre: "Retard de traversée", desc: "Information de délai pour le prochain voyage", msg: "Info : Le départ de la chaloupe Coumba Castel de 10h est retardé de 15 minutes." },
+                { titre: "Promo résidents", desc: "Offre spéciale abonnement mensuel résidents", msg: "Bonne nouvelle : Pensez à renouveler votre abonnement mensuel pour continuer à voyager sans limite !" },
+                { titre: "Rappel embarquement", desc: "Rappel avant le départ du voyage", msg: "Rappel : Embarquement en cours pour le départ de 16h00. Veuillez vous présenter aux portillons." },
+              ].map((t, i) => (
+                <button key={i} onClick={() => handleUseTemplate(t.titre, t.msg)}
+                  className="w-full flex items-start gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-200 hover:bg-blue-50/40 transition-all text-left">
+                  <BellRing size={16} className="mt-0.5 shrink-0" style={{ color: C.ocean }} />
   return <div className='p-6'>{feedback}</div>;
 }

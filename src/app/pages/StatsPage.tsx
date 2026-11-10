@@ -164,6 +164,76 @@ export default function StatsPage({ sub }: { sub: string }) {
         </div>
       </div>
     );
+  }
+
+  if (sub === "occupation") {
+    return (
+      <div className="p-6">
+        {feedback}
+        <PageHeader title="Taux d'occupation" subtitle="Analyse mensuelle par chaloupe" />
+        <div className="grid grid-cols-2 gap-6">
+          <ChartCard title="Occupation par chaloupe — Ce mois">
+            <div className="space-y-4 mt-2">
+              {chaloupesData.length === 0 && <EmptyState />}
+              {chaloupesData.map(c => (
+                <div key={c.id}>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-semibold text-slate-700">{c.nom}</span>
+                    <span className="font-mono text-slate-600">{c.occupation}%</span>
+                  </div>
+                  <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${c.occupation}%`, background: `linear-gradient(90deg, ${C.ocean}, ${C.teal})` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ChartCard>
+          <ChartCard title="Taux mensuel 2026" subtitle="%">
+            {monthlyData.length === 0 ? <EmptyState className="h-[200px]" /> : (
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={monthlyData}>
+                <CartesianGrid key="cg" strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis key="x" dataKey="month" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <YAxis key="y" domain={[60, 100]} tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <Tooltip key="tt" contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+                <Line key="line" type="monotone" dataKey="occupation" stroke={C.ocean} strokeWidth={2.5} dot={{ fill: C.ocean, r: 3 }} name="Occupation %" />
+              </LineChart>
+            </ResponsiveContainer>
+            )}
+          </ChartCard>
+        </div>
+      </div>
+    );
+  }
+
+  if (sub === "validation") {
+    return (
+      <div className="p-6">
+        {feedback}
+        <PageHeader title="Taux de validation QR" subtitle="Analyse mensuelle par mois" />
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          {[
+            ["QR scannés (mois)", validation ? validation.scannes_mois.toLocaleString("fr-FR") : ND, C.ocean],
+            ["Valides", validation ? validation.valides.toLocaleString("fr-FR") : ND, C.green],
+            ["Invalides", validation ? validation.invalides.toLocaleString("fr-FR") : ND, C.red],
+            ["Taux global", validation ? `${validation.taux_global}%` : ND, C.teal],
+          ].map(([l, v, c]) => (
+            <Card key={l as string} className="text-center py-4">
+              <div className="text-xl font-bold font-mono" style={{ color: c as string }}>{v as string}</div>
+              <div className="text-xs text-slate-500 mt-1">{l as string}</div>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Taux de validation par contrôleur</h3>
+          <div className="space-y-3">
+            {controleurs.length === 0 ? (
+              <EmptyState message="Aucun scan enregistré ce mois-ci" />
+            ) : (
+              controleurs.map((agent: any) => (
+                <div key={agent.id}>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-semibold text-slate-700">{agent.nom}</span>
       </div>
     );
   }

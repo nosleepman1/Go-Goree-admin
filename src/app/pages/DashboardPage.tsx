@@ -154,6 +154,76 @@ export default function DashboardPage() {
               <Tooltip key="tt" formatter={(v) => `${v}%`} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
               <Legend key="lg" verticalAlign="bottom" iconSize={10} wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
             </RPieChart>
+          </ResponsiveContainer>
+          )}
+        </ChartCard>
+      </div>
+
+      <Card>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-slate-900">Voyages du jour — {new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</h3>
+        </div>
+        <Table
+          emptyMessage="Aucun voyage pour aujourd'hui"
+          cols={["ID", "Départ", "Arrivée", "Chaloupe", "Places", "Vendus", "Occupation", "Statut", "Recette"]}
+          rows={voyages.map(v => [
+            // UUID complet illisible dans une colonne : on montre le préfixe.
+            <span className="font-mono text-xs text-slate-500" title={v.id}>{String(v.id).slice(0, 8)}</span>,
+            <span className="font-mono font-bold text-slate-900">{v.heure_depart || "—"}</span>,
+            <span className="font-mono">{v.heure_arrivee || "—"}</span>, v.chaloupe,
+            <span className="font-mono">{v.places}</span>,
+            <span className="font-mono">{v.vendus}</span>,
+            <OccBar val={v.vendus === 0 ? 0 : Math.round((v.vendus / v.places) * 100)} />,
+            <StatusBadge statut={v.statut} />,
+            <span className="font-mono text-xs">{v.recette}</span>,
+          ])}
+        />
+      </Card>
+
+      <div className="grid grid-cols-2 gap-4">
+        <ChartCard title="Recettes mensuelles 2026" subtitle="En millions FCFA">
+          {monthlyData.length === 0 ? <EmptyState className="h-[160px]" /> : (
+          <ResponsiveContainer width="100%" height={160}>
+            <AreaChart data={monthlyData}>
+              <defs>
+                <linearGradient id="gradDash" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={C.ocean} stopOpacity={0.2} />
+                  <stop offset="95%" stopColor={C.ocean} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid key="cg" strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis key="x" dataKey="month" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <YAxis key="y" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <Tooltip key="tt" formatter={(v: number) => `${(v / 1000000).toFixed(1)}M FCFA`} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+              <Area key="area" type="monotone" dataKey="recettes" stroke={C.ocean} fill="url(#gradDash)" strokeWidth={2.5} name="Recettes" />
+            </AreaChart>
+          </ResponsiveContainer>
+          )}
+        </ChartCard>
+        <Card>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Dernières transactions</h3>
+          <div className="space-y-2">
+            {transactions.length === 0 && <EmptyState message="Aucune transaction récente" />}
+            {transactions.slice(0, 5).map((t, i) => (
+              <div key={i} className="flex items-center justify-between py-1.5 border-b border-slate-50 dark:border-slate-700">
+                <div className="flex items-center gap-2">
+                  <div className="size-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                    style={{ background: C.sidebarActive }}>
+                    {t.passager[0]}
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">{t.passager}</div>
+                    <div className="text-[10px] text-slate-400 dark:text-slate-500">{t.methode} · {t.date.split(", ")[1]}</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs font-mono font-semibold text-slate-900 dark:text-slate-100">{t.montant}</div>
+                  <StatusBadge statut={t.statut} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
       </div>
         </>
       )}

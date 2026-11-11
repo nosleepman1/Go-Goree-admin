@@ -6,3 +6,12 @@ export interface AuthState {
   logout: () => void;
 }
 
+export const AuthContext = createContext<AuthState>({
+  isLoggedIn: false,
+  login: () => {},
+  logout: () => {},
+});
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
